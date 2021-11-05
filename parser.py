@@ -9,11 +9,9 @@
 from tokenizer import TokenStream
 
 
-
 _VARIABLE = 'Variable'
 _ABSTRACTION = 'Abstraction'
 _APPLICATION = 'Application'
-
 
 
 class ASTBase:
@@ -71,11 +69,17 @@ class Definition:
         self.src = src
         self.defs = {}
 
+    def _replace_main(self, main_clause):
+        pass
+
     def parse(self) -> ASTBase:
         self.defs = {}
         ts = TokenStream(self.src)
         print(ts.tokens)
-        return self.parse_term(ts)
+        self.parse_term(ts)
+        main_clause: ASTBase = self.defs['main']
+        self.defs['main'] = self._replace_main(main_clause)
+        return self.defs['main']
 
     def parse_term(self, tokens: TokenStream, is_app=False) -> ASTBase:
 
