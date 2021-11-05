@@ -12,19 +12,13 @@ class LexError(Exception):
 # the lexical analyzer (housed as class TokenStream, below).
 #
 
-RESERVED = ['if', 'then', 'else',
-            'let', 'val', 'in', 'end',
-            'fn',
-            'orelse', 'andalso',
-            'div', 'mod',
-            'true', 'false',
-            'eof']
+RESERVED = ['fn', 'eof']
 
 # Characters that separate expressions.
-DELIMITERS = '();,|'
+DELIMITERS = '();'
 
 # Characters that make up unary and binary operations.
-OPERATORS = '+-*/<>=&!:.'
+OPERATORS = '=>:'
 
 
 #
@@ -72,7 +66,7 @@ class TokenStream:
 
     def lexassert(self, c):
         if not c:
-            self.raiseLex("Unrecognized character.")
+            self.raiseLex(f"Unrecognized character {c}.")
 
     def raiseLex(self, msg):
         s = self.sourcename + " line " + str(self.line) + " column " + str(self.column)
@@ -356,4 +350,3 @@ class TokenStream:
             # CHOMP a reserved word or a name.
             else:
                 self.chompWord()
-
