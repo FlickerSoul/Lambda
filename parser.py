@@ -69,16 +69,21 @@ class Definition:
         self.src = src
         self.defs = {}
 
-    def _replace_main(self, main_clause):
-        pass
+    def _replace_main(self) -> ASTBase:
+        main_clause: ASTBase = self.defs['main']
+        for definition, term in reversed(self.defs.items()):
+            main_clause = Application(
+                Abstraction(definition, main_clause), term
+            )
+        self.defs['main'] = main_clause
+        return main_clause
 
     def parse(self) -> ASTBase:
         self.defs = {}
         ts = TokenStream(self.src)
         print(ts.tokens)
         self.parse_term(ts)
-        main_clause: ASTBase = self.defs['main']
-        self.defs['main'] = self._replace_main(main_clause)
+        self._replace_main()
         return self.defs['main']
 
     def parse_term(self, tokens: TokenStream, is_app=False) -> ASTBase:
