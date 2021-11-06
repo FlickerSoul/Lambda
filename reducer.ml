@@ -2,7 +2,7 @@
  In-progress.
     Working Substitiution.
     TODO: Flesh out reduction cases
-    Write lambda calculus test terms
+    Write lambda calculus test terms.
 *)
 
 fun from_underline_chars_to_string nil =  nil
