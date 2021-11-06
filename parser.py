@@ -4,7 +4,12 @@
 <term> ::= fn <name> => <term>
 <term> ::= <term> <term>
 <term> ::= <name> | ( <term> )
+<def>  ::= <name> := <term>;
 """
+from __future__ import annotations
+
+from copy import deepcopy
+from typing import Optional, Mapping, List
 
 from tokenizer import TokenStream
 
@@ -13,8 +18,11 @@ _VARIABLE = 'Variable'
 _ABSTRACTION = 'Abstraction'
 _APPLICATION = 'Application'
 
+_MAIN_ENTRY = 'main'
+
 
 class ASTBase:
+    """ AST Base class """
     def __init__(self, label: str, *args):
         self.label = label
         self.args = args
@@ -27,6 +35,7 @@ class ASTBase:
 
 
 class Variable(ASTBase):
+    """ Variable class """
     def __init__(self, var_name: str):
         super().__init__(_VARIABLE, var_name)
         self.var_name = var_name
@@ -39,6 +48,7 @@ class Variable(ASTBase):
 
 
 class Abstraction(ASTBase):
+    """ Abstraction class """
     def __init__(self, var: str, term: ASTBase):
         super().__init__(_ABSTRACTION, var, term)
         self.var = var
@@ -52,6 +62,7 @@ class Abstraction(ASTBase):
 
 
 class Application(ASTBase):
+    """ Application class """
     def __init__(self, term1: ASTBase, term2: ASTBase):
         super().__init__(_APPLICATION, term1, term2)
         self.applier = term1
@@ -65,24 +76,58 @@ class Application(ASTBase):
 
 
 class Definition:
+    """ Definition class
+    The definition class handles lambda calculus source code parsing
+    and the final main clause formatting
+    """
     def __init__(self, src: str) -> None:
-        self.src = src
-        self.defs = {}
+        self._src: str = src
+        self._tokens: Optional[TokenStream] = None
+        self._defs = {}
+        self._main: Optional[ASTBase] = None
 
-    def _replace_main(self, main_clause):
-        pass
+    @property
+    def formatted_main(self) -> Optional[ASTBase]:
+        if self._main is not None:
+            return self._main
 
-    def parse(self) -> ASTBase:
-        self.defs = {}
-        ts = TokenStream(self.src)
-        print(ts.tokens)
-        self.parse_term(ts)
-        main_clause: ASTBase = self.defs['main']
-        self.defs['main'] = self._replace_main(main_clause)
-        return self.defs['main']
+        if _MAIN_ENTRY not in self._defs:
+            return None
 
-    def parse_term(self, tokens: TokenStream, is_app=False) -> ASTBase:
+        main_clause: ASTBase = self._defs[_MAIN_ENTRY]
+        for definition, term in list(reversed(self._defs.items()))[1:]:
+            main_clause = Application(
+                Abstraction(definition, main_clause), term
+            )
 
+        self._main = main_clause
+        return main_clause
+
+    @property
+    def defs(self) -> dict:
+        return self._defs
+
+    @property
+    def tokens(self) -> List:
+        return self._tokens.tokens if self._tokens is not None else None
+
+    def init(self) -> None:
+        """ init parser internals """
+        self._defs = {}
+        self._tokens = None
+        self._main = None
+
+    def parse(self) -> Mapping[str, ASTBase]:
+        """ tokenizes the src and parses it """
+        self.init()
+        self._tokens = TokenStream(self._src)
+        self.parse_term(deepcopy(self._tokens))
+        if _MAIN_ENTRY not in self.defs:
+            print('Warning: main is not defined')
+        return self.defs
+
+    def parse_term(self, tokens: TokenStream, is_app=False) -> Optional[ASTBase]:
+        """ The parsing helper """
         if tokens.next() == "fn":
             tokens.eat('fn')
             name = tokens.eatName()
@@ -104,7 +149,7 @@ class Definition:
                 term = self.parse_term(tokens)
                 if term is None:
                     raise SyntaxError('Empty Definition')
-                self.defs[r.var_name] = term
+                self._defs[r.var_name] = term
                 tokens.eat(';')
 
                 return self.parse_term(tokens)
