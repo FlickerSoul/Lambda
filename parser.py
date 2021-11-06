@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, Mapping, List
 
 from tokenizer import TokenStream
 
@@ -16,6 +16,8 @@ from tokenizer import TokenStream
 _VARIABLE = 'Variable'
 _ABSTRACTION = 'Abstraction'
 _APPLICATION = 'Application'
+
+_MAIN_ENTRY = 'main'
 
 
 class ASTBase:
@@ -70,17 +72,20 @@ class Application(ASTBase):
 
 class Definition:
     def __init__(self, src: str) -> None:
-        self._src = src
-        self._tokens = None
-        self._defs = None
-        self._main = None
+        self._src: str = src
+        self._tokens: Optional[TokenStream] = None
+        self._defs = {}
+        self._main: Optional[ASTBase] = None
 
     @property
-    def formatted_main(self) -> ASTBase:
+    def formatted_main(self) -> Optional[ASTBase]:
         if self._main is not None:
             return self._main
 
-        main_clause: ASTBase = self._defs['main']
+        if _MAIN_ENTRY not in self._defs:
+            return None
+
+        main_clause: ASTBase = self._defs[_MAIN_ENTRY]
         for definition, term in list(reversed(self._defs.items()))[1:]:
             main_clause = Application(
                 Abstraction(definition, main_clause), term
@@ -94,22 +99,23 @@ class Definition:
         return self._defs
 
     @property
-    def tokens(self) -> TokenStream:
-        return self._tokens
+    def tokens(self) -> List:
+        return self._tokens.tokens if self._tokens is not None else None
 
     def init(self) -> None:
         self._defs = {}
         self._tokens = None
         self._main = None
 
-    def parse(self) -> ASTBase:
+    def parse(self) -> Mapping[str, ASTBase]:
         self.init()
         self._tokens = TokenStream(self._src)
         self.parse_term(deepcopy(self._tokens))
-        return self._defs['main']
+        if _MAIN_ENTRY not in self.defs:
+            print('Warning: main is not defined')
+        return self.defs
 
     def parse_term(self, tokens: TokenStream, is_app=False) -> Optional[ASTBase]:
-
         if tokens.next() == "fn":
             tokens.eat('fn')
             name = tokens.eatName()
