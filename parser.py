@@ -22,6 +22,7 @@ _MAIN_ENTRY = 'main'
 
 
 class ASTBase:
+    """ AST Base class """
     def __init__(self, label: str, *args):
         self.label = label
         self.args = args
@@ -34,6 +35,7 @@ class ASTBase:
 
 
 class Variable(ASTBase):
+    """ Variable class """
     def __init__(self, var_name: str):
         super().__init__(_VARIABLE, var_name)
         self.var_name = var_name
@@ -46,6 +48,7 @@ class Variable(ASTBase):
 
 
 class Abstraction(ASTBase):
+    """ Abstraction class """
     def __init__(self, var: str, term: ASTBase):
         super().__init__(_ABSTRACTION, var, term)
         self.var = var
@@ -59,6 +62,7 @@ class Abstraction(ASTBase):
 
 
 class Application(ASTBase):
+    """ Application class """
     def __init__(self, term1: ASTBase, term2: ASTBase):
         super().__init__(_APPLICATION, term1, term2)
         self.applier = term1
@@ -72,6 +76,10 @@ class Application(ASTBase):
 
 
 class Definition:
+    """ Definition class
+    The definition class handles lambda calculus source code parsing
+    and the final main clause formatting
+    """
     def __init__(self, src: str) -> None:
         self._src: str = src
         self._tokens: Optional[TokenStream] = None
@@ -104,11 +112,13 @@ class Definition:
         return self._tokens.tokens if self._tokens is not None else None
 
     def init(self) -> None:
+        """ init parser internals """
         self._defs = {}
         self._tokens = None
         self._main = None
 
     def parse(self) -> Mapping[str, ASTBase]:
+        """ tokenizes the src and parses it """
         self.init()
         self._tokens = TokenStream(self._src)
         self.parse_term(deepcopy(self._tokens))
@@ -117,6 +127,7 @@ class Definition:
         return self.defs
 
     def parse_term(self, tokens: TokenStream, is_app=False) -> Optional[ASTBase]:
+        """ The parsing helper """
         if tokens.next() == "fn":
             tokens.eat('fn')
             name = tokens.eatName()

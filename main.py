@@ -10,6 +10,11 @@ from parser import Definition
 
 
 def eval_all(src: str) -> None:
+    """ eval src and print out evaluation result
+
+    :param src: string of source code
+    :return: None
+    """
     df = Definition(src)
     print('parsed: ')
     pprint(df.parse())
@@ -20,6 +25,11 @@ def eval_all(src: str) -> None:
 
 
 def read_and_eval(file_name: pathlib.Path) -> None:
+    """ read files or files in directories and eval them
+
+    :param file_name: a path-like object
+    :return: None
+    """
     with open(file_name, 'r') as f:
         print(f'file_name: {file_name}')
         eval_all(f.read())
@@ -28,6 +38,10 @@ def read_and_eval(file_name: pathlib.Path) -> None:
 
 
 def main() -> None:
+    """ main function that read command line input or arguments
+
+    :return: None
+    """
     if len(sys.argv) > 1:
         for file_name in sys.argv[1:]:
             file_path = pathlib.Path(file_name)
