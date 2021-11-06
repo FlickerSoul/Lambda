@@ -35,7 +35,8 @@ def main() -> None:
                 for src_file_path in file_path.glob('*.lc'):
                     read_and_eval(src_file_path)
             elif file_path.is_file():
-                assert file_path.name.endswith('.lc')
+                if not file_path.name.endswith('.lc'):
+                    print(f'Warning: file {file_path.name} may not be a lambda calculus file (*.lc)')
                 read_and_eval(file_path)
             else:
                 raise ValueError('Unsupported file type as input. Only accepts folders or files.')
