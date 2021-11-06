@@ -4,6 +4,7 @@
 <term> ::= fn <name> => <term>
 <term> ::= <term> <term>
 <term> ::= <name> | ( <term> )
+<def>  ::= <name> := <term>;
 """
 from __future__ import annotations
 
