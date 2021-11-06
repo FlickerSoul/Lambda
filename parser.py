@@ -5,6 +5,10 @@
 <term> ::= <term> <term>
 <term> ::= <name> | ( <term> )
 """
+from __future__ import annotations
+
+from copy import deepcopy
+from typing import Optional
 
 from tokenizer import TokenStream
 
@@ -66,27 +70,45 @@ class Application(ASTBase):
 
 class Definition:
     def __init__(self, src: str) -> None:
-        self.src = src
-        self.defs = {}
+        self._src = src
+        self._tokens = None
+        self._defs = None
+        self._main = None
 
-    def _replace_main(self) -> ASTBase:
-        main_clause: ASTBase = self.defs['main']
-        for definition, term in reversed(self.defs.items()):
+    @property
+    def formatted_main(self) -> ASTBase:
+        if self._main is not None:
+            return self._main
+
+        main_clause: ASTBase = self._defs['main']
+        for definition, term in list(reversed(self._defs.items()))[1:]:
             main_clause = Application(
                 Abstraction(definition, main_clause), term
             )
-        self.defs['main'] = main_clause
+
+        self._main = main_clause
         return main_clause
 
-    def parse(self) -> ASTBase:
-        self.defs = {}
-        ts = TokenStream(self.src)
-        print(ts.tokens)
-        self.parse_term(ts)
-        self._replace_main()
-        return self.defs['main']
+    @property
+    def defs(self) -> dict:
+        return self._defs
 
-    def parse_term(self, tokens: TokenStream, is_app=False) -> ASTBase:
+    @property
+    def tokens(self) -> TokenStream:
+        return self._tokens
+
+    def init(self) -> None:
+        self._defs = {}
+        self._tokens = None
+        self._main = None
+
+    def parse(self) -> ASTBase:
+        self.init()
+        self._tokens = TokenStream(self._src)
+        self.parse_term(deepcopy(self._tokens))
+        return self._defs['main']
+
+    def parse_term(self, tokens: TokenStream, is_app=False) -> Optional[ASTBase]:
 
         if tokens.next() == "fn":
             tokens.eat('fn')
@@ -109,7 +131,7 @@ class Definition:
                 term = self.parse_term(tokens)
                 if term is None:
                     raise SyntaxError('Empty Definition')
-                self.defs[r.var_name] = term
+                self._defs[r.var_name] = term
                 tokens.eat(';')
 
                 return self.parse_term(tokens)
