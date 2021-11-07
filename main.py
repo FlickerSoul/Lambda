@@ -38,8 +38,6 @@ def read_and_eval(file_name: pathlib.Path) -> Definition:
     with open(file_name, 'r') as f:
         print(f'file_name: {file_name}')
         df = eval_all(f.read())
-        print('===========')
-        print()
 
     return df
 
@@ -53,7 +51,7 @@ def write_main(df: Definition, file_name: pathlib.Path, verbose: bool = False) -
     with open(out_path, 'w') as f:
         f.write(str(df.formatted_main))
     with open(sml_out_path, 'w') as f:
-        f.write(f'{_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};')
+        f.write(f'val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};')
 
     return out_path, sml_out_path
 
@@ -73,9 +71,12 @@ def run_sml(sml: Union[pathlib.Path, str]) -> Optional[str]:
     if sml_bin:
         if isinstance(sml, str):
             _SML_SRC = sml
-        else:
+        elif isinstance(sml, pathlib.Path):
             with open(sml, 'r') as src_f:
                 _SML_SRC = src_f.read()
+        else:
+            raise Exception('Unknown sml src data')
+
         s = subprocess.Popen([sml_bin], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
         output, _ = s.communicate((_SUPPORT_CODE + _SML_SRC).encode())
     else:
@@ -87,12 +88,13 @@ def run_sml(sml: Union[pathlib.Path, str]) -> Optional[str]:
 
 def extract_sml_output(sml_output: str) -> Optional[Tuple]:
     sl = list(i for i in sml_output.split('\n') if i)
-    index, = (i for i in range(len(sl)) if sl[i].startswith('val norReduce'))
-    if sl[-1] != sl[index]:
+    r_index = tuple(i for i in range(len(sl)) if sl[i].startswith('val norReduce'))[0] + 1
+    o_index = tuple(i for i in range(r_index, len(sl)) if sl[i].startswith('val main_'))[0]
+    if o_index < len(sl):
         output = '\n'.join(
-            sl[index + 1:-1]
+            sl[r_index:-1]
         )
-        result = sl[-1]
+        result = '\n'.join(sl[o_index:])
         return output, result
     else:
         return None
@@ -108,6 +110,8 @@ def run_all(src_file_path, verbose: bool = False):
         print(stdout)
     print('reduced result: ')
     print(res)
+    print('================')
+    print()
 
 
 def main() -> None:
