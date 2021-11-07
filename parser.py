@@ -96,6 +96,8 @@ class Definition:
 
         main_clause: ASTBase = self._defs[_MAIN_ENTRY]
         for definition, term in list(reversed(self._defs.items()))[1:]:
+            # reverse the definition dictionary and make it a list
+            # omit the first entry which the main and begin wrapping 
             main_clause = Application(
                 Abstraction(definition, main_clause), term
             )
