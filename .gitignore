@@ -1,4 +1,6 @@
 .idea
+examples/*.out
+examples/*.sml
 
 __pycache__
 *.pyc
