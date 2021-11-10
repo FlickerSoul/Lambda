@@ -1,7 +1,8 @@
 (* CS 384
  In-progress.
-    Working Substitiution. Written reduction
-    TODO: test Reduction
+    Working Substitiution. Written reduction. Correctly computes succ 1 as two.
+
+    TODO: test Reduction further. 
     Write lambda calculus test terms
 *)
 
@@ -32,17 +33,21 @@ fun get_fresh_var (t as (VA s)) =
 
 fun substitution (name as VA n) newTerm (oldTerm as (VA r)) = 
   if n = r then newTerm else oldTerm
-  | substitution (name as VA n) newTerm (oldTerm as (LM (r,body))) = 
-    if n = r then oldTerm else 
+  | substitution (name as VA replaced) newTerm (oldTerm as (LM (r,body))) = 
+    if replaced = r then oldTerm else 
         let val z = get_fresh_var (VA r) 
             in let val t = substitution (VA r) (VA z) body
                 in let val newBody = substitution name newTerm t 
-                    in LM(z,t) end end end
+                    in LM(z,newBody) end end end
   | substitution name newTerm (oldTerm as AP (er, ee)) = AP(substitution name newTerm er, substitution name newTerm ee);
 
+
+(* tests substitution:
+substitution (VA "x") (VA "s") (AP (VA "x", VA "y"));
 substitution (VA "x") (VA "s") (AP(LM("a", LM("y", AP(VA "x", VA "y"))), VA "x"));
 
-substitution (VA "x") (VA "s") (AP (VA "x", VA "y"));
+substitution (VA "n") (LM ("f", LM ("a", AP (VA "f", VA "a"))))(LM ("f", LM ("a", AP ((VA "n"), AP (VA "f", VA("a")))))) ;
+*)
 
 fun isReducible (VA name) = false
   | isReducible (LM (fp, b)) = isReducible b
@@ -52,7 +57,27 @@ fun isReducible (VA name) = false
 fun reductionStep (t as VA(name)) = t
   | reductionStep (t as LM(input, body)) = LM(input, reductionStep body)
   | reductionStep (t as AP((er as LM(fp, body)), ee)) = substitution (VA fp) ee body
-  | reductionStep (t as AP(ee, er)) = if isReducible ee then reductionStep ee 
-      else reductionStep er;
+  | reductionStep (t as AP(ee, er)) = if isReducible ee then AP(reductionStep ee, er)
+      else AP(ee, reductionStep er);
 
-reductionStep test1;
+
+(* Jim's sample2.lc. 
+val v1 = reductionStep test1;
+val v2 = reductionStep v1;
+val reduced = reductionStep v2;
+val v4 = reductionStep v3;          (* reducing an irreducible term yields same term *)
+*)
+
+
+val succ = LM("n", LM("f", LM("a", AP(AP((VA "n"), (VA "f")),AP((VA "f"), (VA "a"))))));
+val one = LM("x", LM("y", AP((VA "x"), (VA "y"))));
+
+val two = AP(succ, one);
+val m = reductionStep two;
+
+val n = reductionStep m;
+val reducedToTwo = reductionStep n
+val q = reductionStep reducedToTwo;         (* reducing an irreducible term yields same term *)
+
+
+
