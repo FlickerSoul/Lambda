@@ -80,4 +80,9 @@ val reducedToTwo = reductionStep n
 val q = reductionStep reducedToTwo;         (* reducing an irreducible term yields same term *)
 
 
+(* attempt at full reducer. can't test all the way online. must use patty *)
+
+fun reducer term = if isReducible term then reducer (reductionStep term) else term;
+
+reducer test2; (* should give 6. = times (succ two) two *)
 
