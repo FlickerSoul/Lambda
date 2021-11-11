@@ -1,0 +1,28 @@
+zero := fn f => fn a => a;
+
+
+fst f a := f
+snd f a := zero
+
+true f a := fst
+false f a := snd
+
+succ n := n f (f a)
+plus n m := m succ n
+times n m := mn
+power n m := n times m 1
+
+
+pair t e c := c t e
+pred n pair := fst(n (snd pair, succ(snd pair)))
+
+minus n m := m pred n
+
+is_zero n := n true false
+
+less n m := is_zero (minus n (pred m))
+
+and x y := x (y true, false) false
+equal n m := less n m #?
+
+fibbit n := 
