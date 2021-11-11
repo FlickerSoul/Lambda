@@ -47,8 +47,8 @@ fun substitution (name as VA n) newTerm (oldTerm as (VA r)) =
 (* substitution (VA "x") (VA "s") (AP (LM("y", AP(VA "x", VA "y")), VA "y")); *)
 
 fun reductionStep (t as AP(f as LM(arg, body), appliee)) = substitution (VA arg) appliee body
-  | reductionStep (t as AP(er as AP(t1, t2), ee)) = let val new = reductionStep er in reductionStep (AP(new, ee)) end
-  | reductionStep (t as AP(er as VA r, ee)) = AP(reductionStep er, ee)
+  | reductionStep (t as AP(er, ee)) = let val new_er = reductionStep er in
+     if new_er = er then AP(er, (reductionStep ee)) else AP(new_er, ee) end
   | reductionStep (t as LM(input, body)) =
       let val newBody = reductionStep body
         in LM(input, newBody) end
@@ -57,10 +57,6 @@ fun reductionStep (t as AP(f as LM(arg, body), appliee)) = substitution (VA arg)
 fun pretty (t as AP(er, ee)) = "AP(" ^ (pretty er) ^ "," ^ (pretty ee) ^ ")"
   | pretty (t as LM(n, b)) = "LM(" ^ n ^ "," ^ (pretty b) ^ ")"
   | pretty (t as (VA v)) = "VA(" ^ v ^ ")";
-
-datatype RT =
-    T of term
-  | VT of term * bool;
 
 fun norReduce t verbose =
       let val nt = reductionStep t in
