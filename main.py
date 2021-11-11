@@ -43,6 +43,14 @@ def read_and_eval(file_name: pathlib.Path) -> Definition:
 
 
 _SML_RD_FN = 'norReduce'
+# _SML_RD_FN = 'reducer'
+
+_SML_SUPPORT_CODE = pathlib.Path('reducer.sml')
+# _SML_SUPPORT_CODE = pathlib.Path('2_reducer.sml')
+
+
+with open(_SML_SUPPORT_CODE, 'r') as _sml_f:
+    _SUPPORT_CODE = _sml_f.read()
 
 
 def write_main(df: Definition, file_name: pathlib.Path, verbose: bool = False) -> tuple:
@@ -51,15 +59,10 @@ def write_main(df: Definition, file_name: pathlib.Path, verbose: bool = False) -
     with open(out_path, 'w') as f:
         f.write(str(df.formatted_main))
     with open(sml_out_path, 'w') as f:
-        f.write(f'val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};')
+        f.write(f'val start_ = ();\n'
+                f'val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};')
 
     return out_path, sml_out_path
-
-
-_SML_SUPPORT_CODE = pathlib.Path('reducer.sml')
-
-with open(_SML_SUPPORT_CODE, 'r') as _sml_f:
-    _SUPPORT_CODE = _sml_f.read()
 
 
 def run_sml(sml: Union[pathlib.Path, str]) -> Optional[str]:
@@ -88,7 +91,7 @@ def run_sml(sml: Union[pathlib.Path, str]) -> Optional[str]:
 
 def extract_sml_output(sml_output: str) -> Optional[Tuple]:
     sl = list(i for i in sml_output.split('\n') if i)
-    r_index = tuple(i for i in range(len(sl)) if sl[i].startswith('val norReduce'))[0] + 1
+    r_index = tuple(i for i in range(len(sl)) if sl[i].startswith('val start_'))[0] + 1
     o_index = tuple(i for i in range(r_index, len(sl)) if sl[i].startswith('val main_'))[0]
     if o_index < len(sl):
         output = '\n'.join(
