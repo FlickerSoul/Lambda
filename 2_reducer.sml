@@ -6,6 +6,9 @@
     Write lambda calculus test terms
 *)
 
+val _ = (Control.Print.printDepth := 1000)
+
+
 fun from_underline_chars_to_string nil =  nil
   | from_underline_chars_to_string (ch::ht) = if ch = #"_" then nil else ch::(from_underline_chars_to_string ht);
 
