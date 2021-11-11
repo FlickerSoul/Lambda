@@ -58,10 +58,10 @@ fun pretty (t as AP(er, ee)) = "AP(" ^ (pretty er) ^ "," ^ (pretty ee) ^ ")"
   | pretty (t as LM(n, b)) = "LM(" ^ n ^ "," ^ (pretty b) ^ ")"
   | pretty (t as (VA v)) = "VA(" ^ v ^ ")";
 
-fun norReduce t verbose =
+fun reducer t verbose =
       let val nt = reductionStep t in
         if nt = t then nt else
-          if verbose then (print ((pretty t) ^ "\n"); norReduce nt verbose) else (norReduce nt verbose)
+          if verbose then (print ((pretty t) ^ "\n"); reducer nt verbose) else (reducer nt verbose)
 end;
 
-(* val test3 = norReduce (AP (LM ("a_1", LM ("y_3", AP (LM ("x", VA "a_1"), VA "y_3"))), LM ("x", VA "a"))) true; *)
+(* val test3 = reducer (AP (LM ("a_1", LM ("y_3", AP (LM ("x", VA "a_1"), VA "y_3"))), LM ("x", VA "a"))) true; *)
