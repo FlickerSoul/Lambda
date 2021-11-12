@@ -2,6 +2,8 @@
 
 # CSCI 384
 
+from __future__ import annotations
+
 import pathlib
 from pprint import pprint
 import subprocess
@@ -116,7 +118,7 @@ def extract_sml_output(sml_output: str) -> Optional[Tuple]:
     """ extract sml from the output got from run_sml
 
     :param sml_output: sml output text in str
-    :return: reduction step and reduction result in a tuple or None if the executaion fails
+    :return: reduction step and reduction result in a tuple or None if the execution fails
     """
     sl = list(i for i in sml_output.split('\n') if i)
 
