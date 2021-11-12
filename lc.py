@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import pathlib
+import time
 from pprint import pprint
 import subprocess
 import shutil
@@ -62,8 +63,30 @@ def _format_sml_exec_stream(df: Definition, verbose: bool = False) -> str:
     :param verbose: verbose flag
     :return: executable sml terms
     """
-    return f'val start_ = ();\n ' \
-           f'val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};'
+    return f'val _ = (Control.Print.printDepth := 10000)' \
+           f'val start_ = ();\n ' \
+           f'val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};\n' \
+           f'val end_ = ();'
+
+
+class _Timer:
+    def __init__(self):
+        self._start = None
+        self._prompt = 'time consumed'
+
+    def __call__(self, prompt: str):
+        self._prompt = prompt
+        return self
+
+    def __enter__(self):
+        self._start = time.time()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        time_lapse = time.time() - self._start
+        print(f'{self._prompt}: {time_lapse}s')
+
+
+_timer = _Timer()
 
 
 def write_main(df: Definition, file_name: pathlib.Path, verbose: bool = False) -> tuple:
@@ -106,8 +129,9 @@ def run_sml(sml: Union[pathlib.Path, str]) -> Optional[str]:
         else:
             raise Exception('Unknown sml src data')
 
-        s = subprocess.Popen([sml_bin], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        output, _ = s.communicate((_SUPPORT_CODE + _SML_SRC).encode())
+        with _timer('sml execution took'):
+            s = subprocess.Popen([sml_bin], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            output, _ = s.communicate((_SUPPORT_CODE + _SML_SRC).encode())
     else:
         print('no sml compiler')
         return None
