@@ -276,10 +276,10 @@ class TokenStream:
             self.issue('"' + token + '"')
 
     def chompComment(self):
-        self.lexassert(len(self.source) > 1 and self.source[0:1] == '(*')
+        self.lexassert(len(self.source) > 1 and self.source[0:2] == '(*')
         self.chompChar()  # eat (*
         self.chompChar()  #
-        while len(self.source) >= 2 and self.source[0:1] != '*)':
+        while len(self.source) >= 2 and self.source[0:2] != '*)':
             self.chomp()
         if len(self.source) < 2:
             self.raiseLex("EOF encountered within comment")
@@ -333,7 +333,7 @@ class TokenStream:
             if self.source[0] == '"':
                 self.chompString()
             # CHOMP a comment
-            elif self.source[0:1] == '(*':
+            elif self.source[0:2] == '(*':
                 self.chompComment()
             # CHOMP whitespace
             elif self.source[0] in ' \t\n\r':
