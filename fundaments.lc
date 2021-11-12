@@ -34,8 +34,8 @@ less := fn n => fn m => is_zero (minus n (pred m));
 and := fn x => fn y => x (y true false) false;
 not := fn c => c false true;
 
-equal := fn n => fn m => and (is_zero (minus n m)) (not (less n m));
-equal := fn n => fn m => and (less (pred n) m) (less n (pred m));
+(* equal := fn n => fn m => and (is_zero (minus n m)) (not (less n m)); *)
+(* equal := fn n => fn m => and (less (pred n) m) (less n (pred m)); *)
 equal := fn n => fn m => and (not (less n m)) (not (less m n));
 
 fibbit := fn n => fst (n (fn p => (pair (snd p) (plus (fst p) (snd p)))) (pair zero one));
