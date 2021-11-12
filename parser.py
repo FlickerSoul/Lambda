@@ -214,6 +214,13 @@ class Definition:
         elif tokens.next() == "eof":
             return None
 
+        elif tokens.nextIsInt():
+            count = tokens.eatInt()
+            r = Variable('zero')
+            for _ in range(count):
+                r = Application(Variable('succ'), r)
+            return r
+
         else:
             raise SyntaxError("Unexpected token. Expected eof. Saw ''" + tokens.next()+"''.")
 
