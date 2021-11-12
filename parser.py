@@ -122,6 +122,10 @@ class Definition:
         return self._SUPPORTING_CODE + '\n' + self._src
 
     @property
+    def raw_src(self) -> str:
+        return self._src
+
+    @property
     def defs(self) -> dict:
         return self._defs
 
@@ -138,7 +142,6 @@ class Definition:
     def parse(self) -> Mapping[str, ASTBase]:
         """ tokenizes the src and parses it """
         self.init()
-        print(self.src)
         self._tokens = TokenStream(self.src)
         self.parse_term(deepcopy(self._tokens))
         if _MAIN_ENTRY not in self.defs:
