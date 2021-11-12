@@ -44,6 +44,6 @@ div2 := fn n => fst (n (fn p => (pair (snd p) (succ (fst p)))) (pair zero zero))
 
 Y := fn g => (fn f => g (f f)) (fn f => g (f f));
 
-fibhelp := fn c => fn n => plus (c (pred n)) (c (pred (pred n)));
+fibhelp := fn c => fn n => if (is_zero n) zero (if (equal n one) one (plus (c (pred n)) (c (pred (pred n)))));
 
 fibrec := fn n => Y fibhelp n;
