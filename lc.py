@@ -209,7 +209,7 @@ def arg() -> Tuple:
     """
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('files', nargs='*', type=pathlib.Path, help='lc file path(s)')
-    arg_parser.add_argument('-verbose', '-v', type=bool, default=False, required=False, help='verbose')
+    arg_parser.add_argument('-v', '--verbose', action='store_true', default=False, help='verbose')
 
     parsed = arg_parser.parse_args()
 
