@@ -1,6 +1,7 @@
 zero := fn f => fn a => a;
-false := zero;
 true := fn t => fn e => t;
+false := fn t => fn e => e;
+if := fn c => fn t => fn e => c t e;
 
 
 pair := fn t => fn e => fn c => c t e;
@@ -25,7 +26,7 @@ pred := fn n => fst(n (fn p => (pair (snd p) (succ (snd p)))) (pair zero zero));
 
 minus := fn n => fn m => m pred n;
 
-is_zero := fn n => n false true;
+is_zero := fn n => n (fn f => false) true;
 
 less := fn n => fn m => is_zero (minus n (pred m));
 
