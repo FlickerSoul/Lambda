@@ -23,6 +23,12 @@ _MAIN_ENTRY = 'main'
 
 
 def _read_supporting_code(ps: Iterable[Path]) -> str:
+    """ Read the supporting code from paths
+
+    currently the supporting code is only fundaments.lc
+    :param ps: paths
+    :return: supporting code src concatenated together
+    """
     content = []
     for p in ps:
         with open(p, 'r') as f:
@@ -87,44 +93,61 @@ class Application(ASTBase):
 class Definition:
     """ Definition class
     The definition class handles lambda calculus source code parsing
-    and the final main clause formatting
+    and the final main clause formatting with dependent tree shaking
     """
     _LC_SUPPORT_CODES = [Path('fundaments.lc')]
     _SUPPORTING_CODE = _read_supporting_code(_LC_SUPPORT_CODES)
 
+    __slots__ = ['_src', '_tokens', '_defs', '_main', '_dependent_tree']
+
     def __init__(self, src: str) -> None:
+        """ init definition, taking in the src
+
+        :param src: lc source string
+        """
         self._src: str = src
         self._tokens: Optional[TokenStream] = None
         self._defs = {}
         self._main: Optional[ASTBase] = None
         self._dependent_tree = None
 
-    def _tree_shaking_helper(self, df: ASTBase, container: set, *exclude) -> set:
-        if isinstance(df, Variable):
-            vn = df.var_name
-            if vn not in container and vn in self.defs and vn not in exclude:
-                container.add(vn)
-                self._tree_shaking_helper(self.defs[vn], container)
-        elif isinstance(df, Abstraction):
-            self._tree_shaking_helper(df.body, container, df.var, *exclude)
-        elif isinstance(df, Application):
-            self._tree_shaking_helper(df.applier, container, *exclude)
-            self._tree_shaking_helper(df.appliee, container, *exclude)
-        else:
-            raise Exception(f'Encounter unknown definition {df}')
-
-        return container
-
     def _tree_shaking(self) -> None:
+        """ tree shaking handler
+
+        :return: None
+        """
         if self._dependent_tree is not None:
             return self._dependent_tree
+
+        def _tree_shaking_helper(df: ASTBase, container: set, *exclude) -> set:
+            """ recursively resolve clause dependency
+
+            :param df: definition to be resolved
+            :param container: dependency container
+            :param exclude: var to be excluded
+            :return: the dependency container
+            """
+            if isinstance(df, Variable):
+                vn = df.var_name
+                if vn not in container and vn in self.defs and vn not in exclude:
+                    container.add(vn)
+                    _tree_shaking_helper(self.defs[vn], container)
+            elif isinstance(df, Abstraction):
+                _tree_shaking_helper(df.body, container, df.var, *exclude)
+            elif isinstance(df, Application):
+                _tree_shaking_helper(df.applier, container, *exclude)
+                _tree_shaking_helper(df.appliee, container, *exclude)
+            else:
+                raise Exception(f'Encounter unknown definition {df}')
+
+            return container
 
         main_clause = self.defs.get(_MAIN_ENTRY, None)
         if main_clause is None:
             print('there is no main clause to shake')
             return
 
-        self._dependent_tree = self._tree_shaking_helper(main_clause, set())
+        self._dependent_tree = _tree_shaking_helper(main_clause, set())
 
     @property
     def dependent_tree(self) -> set:
@@ -222,7 +245,7 @@ class Definition:
             return r
 
         else:
-            raise SyntaxError("Unexpected token. Expected eof. Saw ''" + tokens.next()+"''.")
+            raise SyntaxError(f'Unexpected token. Expected eof. Saw `{tokens.next()}`.')
 
         if not is_app:
             try:
