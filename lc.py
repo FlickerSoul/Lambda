@@ -16,32 +16,35 @@ from typing import Union, Optional, Tuple
 from parser import Definition
 
 
-def eval_all(src: str) -> Definition:
+def eval_all(src: str, verbose: bool = False) -> Definition:
     """ eval src and print out evaluation result
 
     :param src: string of source code
+    :param verbose: verbose flag
     :return: None
     """
     df = Definition(src)
-    print('parsed: ')
-    pprint(df.parse())
-    print('tokens: ')
-    print(df.tokens)
-    print('main: ')
-    pprint(df.formatted_main)
-
+    parsed = df.parse()
+    if verbose:
+        print('parsed: ')
+        pprint(parsed)
+        print('tokens: ')
+        print(df.tokens)
+        print('main: ')
+        pprint(df.formatted_main)
     return df
 
 
-def read_and_eval(file_name: pathlib.Path) -> Definition:
+def read_and_eval(file_name: pathlib.Path, verbose: bool = False) -> Definition:
     """ read files or files in directories and eval them
 
     :param file_name: a path-like object
+    :param verbose: verbose flag
     :return: None
     """
     with open(file_name, 'r') as f:
         print(f'file_name: {file_name}')
-        df = eval_all(f.read())
+        df = eval_all(f.read(), verbose=verbose)
 
     return df
 
@@ -176,13 +179,13 @@ def run_all(src: Union[pathlib.Path, str], verbose: bool = False) -> None:
     :return: None
     """
     if isinstance(src, pathlib.Path):
-        _, sml_code_path = write_main(read_and_eval(src), src, verbose)
+        _, sml_code_path = write_main(read_and_eval(src, verbose), src, verbose)
     elif isinstance(src, str):
         f = pathlib.Path(src)
         if f.is_file() and src.endswith('.lc'):
-            _, sml_code_path = write_main(read_and_eval(f), f, verbose)
+            _, sml_code_path = write_main(read_and_eval(f, verbose), f, verbose)
         else:
-            sml_code_path = _format_sml_exec_stream(eval_all(src), verbose)
+            sml_code_path = _format_sml_exec_stream(eval_all(src, verbose), verbose)
     else:
         raise Exception('unknown file type')
 
