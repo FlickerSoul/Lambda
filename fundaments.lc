@@ -6,7 +6,7 @@ snd := zero;
 true := fst;
 false := snd;
 
-succ := fn n => fn f => n f (f a);
+succ := fn n => fn f => fn a => f (n f a);
 
 one := succ zero;
 
