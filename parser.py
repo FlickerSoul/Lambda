@@ -97,6 +97,38 @@ class Definition:
         self._tokens: Optional[TokenStream] = None
         self._defs = {}
         self._main: Optional[ASTBase] = None
+        self._dependent_tree = None
+
+    def _tree_shaking_helper(self, df: ASTBase, container: set, *exclude) -> set:
+        if isinstance(df, Variable):
+            var_name = df.var_name
+            if var_name in self.defs and var_name not in exclude:
+                container.add(var_name)
+                self._tree_shaking_helper(self.defs[var_name], container)
+        elif isinstance(df, Abstraction):
+            self._tree_shaking_helper(df.body, container, df.var, *exclude)
+        elif isinstance(df, Application):
+            self._tree_shaking_helper(df.applier, container, *exclude)
+            self._tree_shaking_helper(df.appliee, container, *exclude)
+        else:
+            raise Exception(f'Encounter unknown definition {df}')
+
+        return container
+
+    def _tree_shaking(self) -> None:
+        if self._dependent_tree is not None:
+            return self._dependent_tree
+
+        main_clause = self.defs.get(_MAIN_ENTRY, None)
+        if main_clause is None:
+            print('there is no main clause to shake')
+            return
+
+        self._dependent_tree = self._tree_shaking_helper(main_clause, set())
+
+    @property
+    def dependent_tree(self) -> set:
+        return self._dependent_tree
 
     @property
     def formatted_main(self) -> Optional[ASTBase]:
@@ -106,13 +138,16 @@ class Definition:
         if _MAIN_ENTRY not in self._defs:
             return None
 
+        self._tree_shaking()
+
         main_clause: ASTBase = self._defs[_MAIN_ENTRY]
-        for definition, term in list(reversed(self._defs.items()))[1:]:
+        for var_name, definition in list(reversed(self._defs.items()))[1:]:
             # reverse the definition dictionary and make it a list
-            # omit the first entry which the main and begin wrapping 
-            main_clause = Application(
-                Abstraction(definition, main_clause), term
-            )
+            # omit the first entry which the main and begin wrapping
+            if var_name in self.dependent_tree:
+                main_clause = Application(
+                    Abstraction(var_name, main_clause), definition
+                )
 
         self._main = main_clause
         return main_clause

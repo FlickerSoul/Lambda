@@ -31,6 +31,8 @@ def eval_all(src: str, verbose: bool = False) -> Definition:
         pprint(parsed)
         print('tokens: ')
         print(df.tokens)
+        print('dependent tree: ')
+        print(df.dependent_tree)
         print('main: ')
         pprint(df.formatted_main)
     return df
