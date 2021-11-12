@@ -178,8 +178,8 @@ def arg() -> Tuple:
     :return: files arg and verbose flag in tuple
     """
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('files', nargs='*', type=pathlib.Path)
-    arg_parser.add_argument('verbose', type=bool, default=False)
+    arg_parser.add_argument('files', nargs='*', type=pathlib.Path, help='lc file path(s)')
+    arg_parser.add_argument('-verbose', '-v', type=bool, default=False, required=False, help='verbose')
 
     parsed = arg_parser.parse_args()
 
@@ -191,8 +191,9 @@ def main() -> None:
 
     :return: None
     """
-    if len(sys.argv) > 1:
-        file_name, verbose = arg()
+    file_name, verbose = arg()
+
+    if file_name:
         for file_name in file_name:
             file_path = pathlib.Path(file_name)
             if file_path.is_dir():
@@ -203,8 +204,6 @@ def main() -> None:
             else:
                 raise ValueError('Unsupported file type as input. Only accepts folders or *.lc files.')
     else:
-        is_verbose = bool(input('Turn on verbose (y/n)? ').strip() == 'y')
-        print(f'verbose mode: {is_verbose}')
         print("Enter an expression with Ctrl-D or Ctrl-Z to end: ")
         content = []
         while True:
@@ -212,7 +211,7 @@ def main() -> None:
                 content.append(input())
             except EOFError:
                 break
-        run_all('\n'.join(content), verbose=is_verbose)
+        run_all('\n'.join(content), verbose=verbose)
 
 
 if __name__ == '__main__':
