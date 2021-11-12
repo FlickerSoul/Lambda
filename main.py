@@ -53,22 +53,43 @@ with open(_SML_SUPPORT_CODE, 'r') as _sml_f:
     _SUPPORT_CODE = _sml_f.read()
 
 
-def _format_sml(df: Definition, verbose: bool = False) -> str:
-    return f'val start_ = ();\n val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};'
+def _format_sml_exec_stream(df: Definition, verbose: bool = False) -> str:
+    """ format definition into sml executable string
+
+    :param df: parsed lambda definition
+    :param verbose: verbose flag
+    :return: executable sml terms
+    """
+    return f'val start_ = ();\n ' \
+           f'val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};'
 
 
 def write_main(df: Definition, file_name: pathlib.Path, verbose: bool = False) -> tuple:
+    """ write definition to the files
+
+    :param df: parsed lambda definition
+    :param file_name: file name to be written to
+                      <file_name>.out is the parsed definition
+                      <file_name>.sml is the sml executable of the parsed definition
+    :param verbose: verbose flag
+    :return: the Path object for .out and .sml files
+    """
     out_path = pathlib.Path(f'{file_name}.out')
     sml_out_path = pathlib.Path(f'{file_name}.sml')
     with open(out_path, 'w') as f:
         f.write(str(df.formatted_main))
     with open(sml_out_path, 'w') as f:
-        f.write(_format_sml(df, verbose))
+        f.write(_format_sml_exec_stream(df, verbose))
 
     return out_path, sml_out_path
 
 
 def run_sml(sml: Union[pathlib.Path, str]) -> Optional[str]:
+    """ run sml using sml/nj or sosml
+
+    :param sml: the sml code file path or parsed sml code of the lc definition
+    :return: sml output in str or None if there is no sml executables
+    """
     has_sml = shutil.which('sml')
     has_sosml = shutil.which('sosml')
 
@@ -93,6 +114,11 @@ def run_sml(sml: Union[pathlib.Path, str]) -> Optional[str]:
 
 
 def extract_sml_output(sml_output: str) -> Optional[Tuple]:
+    """ extract sml from the output got from run_sml
+
+    :param sml_output: sml output text in str
+    :return: reduction step and reduction result in a tuple or None if the executaion fails
+    """
     sl = list(i for i in sml_output.split('\n') if i)
 
     try:
@@ -116,7 +142,13 @@ def extract_sml_output(sml_output: str) -> Optional[Tuple]:
         return None
 
 
-def run_all(src: Union[pathlib.Path, str], verbose: bool = False):
+def run_all(src: Union[pathlib.Path, str], verbose: bool = False) -> None:
+    """ run src and print output
+
+    :param src: src path obj or src str
+    :param verbose: verbose flag
+    :return: None
+    """
     if isinstance(src, pathlib.Path):
         _, sml_code_path = write_main(read_and_eval(src), src, verbose)
     elif isinstance(src, str):
@@ -124,7 +156,7 @@ def run_all(src: Union[pathlib.Path, str], verbose: bool = False):
         if f.is_file() and src.endswith('.lc'):
             _, sml_code_path = write_main(read_and_eval(f), f, verbose)
         else:
-            sml_code_path = _format_sml(eval_all(src), verbose)
+            sml_code_path = _format_sml_exec_stream(eval_all(src), verbose)
     else:
         raise Exception('unknown file type')
 
@@ -141,6 +173,10 @@ def run_all(src: Union[pathlib.Path, str], verbose: bool = False):
 
 
 def arg() -> Tuple:
+    """ parse args
+
+    :return: files arg and verbose flag in tuple
+    """
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('files', nargs='*', type=pathlib.Path)
     arg_parser.add_argument('verbose', type=bool, default=False)
