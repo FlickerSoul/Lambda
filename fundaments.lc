@@ -47,8 +47,14 @@ div2 := fn n => fst (n (fn p => (pair (snd p) (succ (fst p)))) (pair zero zero))
 (* Y combinator *)
 Y := fn g => (fn f => g (f f)) (fn f => g (f f));
 
-(* fib rec helper *)
+(* fibrec helper *)
 fibhelp := fn c => fn n => if (is_zero n) zero (if (equal n (succ zero)) (succ zero) (plus (c (pred n)) (c (pred (pred n)))));
 
 (* fibrec *)
 fibrec := fn n => Y fibhelp n;
+
+(* gcd helper *)
+gcdhelp := fn c => fn a => fn b => if (equal a b) a (if (less a b) (c a (minus b a)) (c (minus a b) b));
+
+(* gcd *)
+gcd := fn a => fn b => Y gcdhelp a b;
