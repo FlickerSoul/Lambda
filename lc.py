@@ -24,7 +24,7 @@ def eval_all(src: str, verbose: bool = False) -> Definition:
     :return: None
     """
     df = Definition(src)
-    print(f'src: \n{df.raw_src}')
+    print(f'src: \n```\n{df.raw_src}\n```')
     parsed = df.parse()
     if verbose:
         print('parsed: ')
