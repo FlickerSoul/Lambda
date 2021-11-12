@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # CSCI 384
+# usage: ./lc.py [-h] [-v] [*.lc files or folders containing *.lc files or nothing to enter cmd input mode]
 
 from __future__ import annotations
 
