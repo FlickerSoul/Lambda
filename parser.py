@@ -101,10 +101,10 @@ class Definition:
 
     def _tree_shaking_helper(self, df: ASTBase, container: set, *exclude) -> set:
         if isinstance(df, Variable):
-            var_name = df.var_name
-            if var_name in self.defs and var_name not in exclude:
-                container.add(var_name)
-                self._tree_shaking_helper(self.defs[var_name], container)
+            vn = df.var_name
+            if vn not in container and vn in self.defs and vn not in exclude:
+                container.add(vn)
+                self._tree_shaking_helper(self.defs[vn], container)
         elif isinstance(df, Abstraction):
             self._tree_shaking_helper(df.body, container, df.var, *exclude)
         elif isinstance(df, Application):
