@@ -7,6 +7,7 @@ import pathlib
 from pprint import pprint
 import subprocess
 import shutil
+import argparse
 from typing import Union, Optional, Tuple
 
 from parser import Definition
@@ -42,9 +43,8 @@ def read_and_eval(file_name: pathlib.Path) -> Definition:
     return df
 
 
-_SML_RD_FN = 'norReduce'
-# _SML_RD_FN = 'reducer'
-
+# _SML_RD_FN = 'norReduce'
+_SML_RD_FN = 'reducer'
 _SML_SUPPORT_CODE = pathlib.Path('reducer.sml')
 # _SML_SUPPORT_CODE = pathlib.Path('2_reducer.sml')
 
@@ -53,14 +53,17 @@ with open(_SML_SUPPORT_CODE, 'r') as _sml_f:
     _SUPPORT_CODE = _sml_f.read()
 
 
+def _format_sml(df: Definition, verbose: bool = False) -> str:
+    return f'val start_ = ();\n val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};'
+
+
 def write_main(df: Definition, file_name: pathlib.Path, verbose: bool = False) -> tuple:
     out_path = pathlib.Path(f'{file_name}.out')
     sml_out_path = pathlib.Path(f'{file_name}.sml')
     with open(out_path, 'w') as f:
         f.write(str(df.formatted_main))
     with open(sml_out_path, 'w') as f:
-        f.write(f'val start_ = ();\n'
-                f'val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};')
+        f.write(_format_sml(df, verbose))
 
     return out_path, sml_out_path
 
@@ -91,8 +94,18 @@ def run_sml(sml: Union[pathlib.Path, str]) -> Optional[str]:
 
 def extract_sml_output(sml_output: str) -> Optional[Tuple]:
     sl = list(i for i in sml_output.split('\n') if i)
-    r_index = tuple(i for i in range(len(sl)) if sl[i].startswith('val start_'))[0] + 1
-    o_index = tuple(i for i in range(r_index, len(sl)) if sl[i].startswith('val main_'))[0]
+
+    try:
+        r_index = tuple(i for i in range(len(sl)) if sl[i].startswith('val start_'))[0] + 1
+    except IndexError:
+        print('source code does not follow the api')
+        return
+    try:
+        o_index = tuple(i for i in range(r_index, len(sl)) if sl[i].startswith('val main_'))[0]
+    except IndexError:
+        print('cannot find main_ evaluation, possibly due to error')
+        return
+
     if o_index < len(sl):
         output = '\n'.join(
             sl[r_index:-1]
@@ -103,8 +116,18 @@ def extract_sml_output(sml_output: str) -> Optional[Tuple]:
         return None
 
 
-def run_all(src_file_path, verbose: bool = False):
-    _, sml_code_path = write_main(read_and_eval(src_file_path), src_file_path, verbose)
+def run_all(src: Union[pathlib.Path, str], verbose: bool = False):
+    if isinstance(src, pathlib.Path):
+        _, sml_code_path = write_main(read_and_eval(src), src, verbose)
+    elif isinstance(src, str):
+        f = pathlib.Path(src)
+        if f.is_file() and src.endswith('.lc'):
+            _, sml_code_path = write_main(read_and_eval(f), f, verbose)
+        else:
+            sml_code_path = _format_sml(eval_all(src), verbose)
+    else:
+        raise Exception('unknown file type')
+
     out = run_sml(sml_code_path)
     stdout, res = extract_sml_output(out)
 
@@ -117,24 +140,43 @@ def run_all(src_file_path, verbose: bool = False):
     print()
 
 
+def arg() -> Tuple:
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('files', nargs='*', type=pathlib.Path)
+    arg_parser.add_argument('verbose', type=bool, default=False)
+
+    parsed = arg_parser.parse_args()
+
+    return getattr(parsed, 'files'), getattr(parsed, 'verbose')
+
+
 def main() -> None:
     """ main function that read command line input or arguments
 
     :return: None
     """
     if len(sys.argv) > 1:
-        for file_name in sys.argv[1:]:
+        file_name, verbose = arg()
+        for file_name in file_name:
             file_path = pathlib.Path(file_name)
             if file_path.is_dir():
                 for src_file_path in file_path.glob('*.lc'):
-                    run_all(src_file_path)
+                    run_all(src_file_path, verbose=verbose)
             elif file_path.is_file():
-                run_all(file_path)
+                run_all(file_path, verbose=verbose)
             else:
-                raise ValueError('Unsupported file type as input. Only accepts folders or files.')
+                raise ValueError('Unsupported file type as input. Only accepts folders or *.lc files.')
     else:
-        print("Enter an expression:")
-        eval_all(input())
+        is_verbose = bool(input('Turn on verbose (y/n)? ').strip() == 'y')
+        print(f'verbose mode: {is_verbose}')
+        print("Enter an expression with Ctrl-D or Ctrl-Z to end: ")
+        content = []
+        while True:
+            try:
+                content.append(input())
+            except EOFError:
+                break
+        run_all('\n'.join(content), verbose=is_verbose)
 
 
 if __name__ == '__main__':
