@@ -85,7 +85,19 @@ val q = reductionStep reducedToTwo;         (* reducing an irreducible term yiel
 
 (* attempt at full reducer. can't test all the way online. must use patty *)
 
-fun reducer term = if isReducible term then reducer (reductionStep term) else term;
+
+fun pretty (t as AP(er, ee)) = "AP(" ^ (pretty er) ^ "," ^ (pretty ee) ^ ")"
+  | pretty (t as LM(n, b)) = "LM(" ^ n ^ "," ^ (pretty b) ^ ")"
+  | pretty (t as (VA v)) = "VA(" ^ v ^ ")";
+
+
+fun reducer term verbose = if isReducible term then
+                            let val reduced = reductionStep term
+                                in if verbose
+                                   then (print ((pretty reduced) ^ "\n"); reducer reduced verbose)
+                                   else reducer reduced verbose
+                                end
+                            else term;
 
 reducer test2; (* should give 6. = times (succ two) two *)
 
