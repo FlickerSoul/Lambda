@@ -6,20 +6,22 @@ snd := zero;
 true := fst;
 false := snd;
 
-succ := fn n => fn => n f (f a);
-plus := fn n => fn m := m succ n;
-times := fn n => fn m => m n;
-power := fn n => fn m => n times m 1;
+succ := fn n => fn f => n f (f a);
 
 one := succ zero;
 
+plus := fn n => fn m => m succ n;
+times := fn n => fn m => m n;
+power := fn n => fn m => n times m one;
+
+
 pair := fn t => fn e => fn c => c t e;
 
-pred := fn n => fst(n fn p => (pair (snd p) (succ(snd p))) (pair zero zero)));
+pred := fn n => fst(n (fn p => (pair (snd p) (succ (snd p)))) (pair zero zero));
 
 minus := fn n => fn m => m pred n;
 
-is_zero := fn n => fn => n false true;
+is_zero := fn n => n false true;
 
 less := fn n => fn m => is_zero (minus n (pred m));
 
@@ -33,5 +35,4 @@ equal := fn n => fn m => and (not (less n m)) (not (less m n));
 
 fibbit := fn n => fst (n (fn p => (pair (snd p) (plus (fst p) (snd p)))) (pair zero one));
 
-
-div2 := fn n => fst (n (fn p => (pair (snd p), succ(fst p))) (pair zero zero));
+div2 := fn n => fst (n (fn p => (pair (snd p) succ(fst p))) (pair zero zero));
