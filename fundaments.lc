@@ -3,6 +3,7 @@ false := zero;
 true := fn t => fn e => t;
 
 
+pair := fn t => fn e => fn c => c t e;
 fst := fn p => p true;
 snd := fn p => p false;
 
@@ -16,10 +17,9 @@ four := succ three;
 five := succ four;
 
 plus := fn n => fn m => m succ n;
-times := fn n => fn m => m n;
-power := fn n => fn m => n times m one;
+times := fn n => fn m => fn f => m (n f);
+power := fn b => fn p => p (times b) one;
 
-pair := fn t => fn e => fn c => c t e;
 
 pred := fn n => fst(n (fn p => (pair (snd p) (succ (snd p)))) (pair zero zero));
 
