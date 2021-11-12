@@ -1,1 +1,1 @@
-main := div2 five;
+main := div2 (succ (succ (succ (succ (succ zero)))));

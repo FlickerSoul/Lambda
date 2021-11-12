@@ -1,1 +1,1 @@
-main := equal four four;
+main := equal 10 10;
