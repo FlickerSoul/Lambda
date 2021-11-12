@@ -142,7 +142,7 @@ class Definition:
     def parse(self) -> Mapping[str, ASTBase]:
         """ tokenizes the src and parses it """
         self.init()
-        self._tokens = TokenStream(self.raw_src)
+        self._tokens = TokenStream(self.src)
         self.parse_term(deepcopy(self._tokens))
         if _MAIN_ENTRY not in self.defs:
             print('Warning: main is not defined')
