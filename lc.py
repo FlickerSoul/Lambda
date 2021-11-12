@@ -54,12 +54,13 @@ def read_and_eval(file_name: pathlib.Path, verbose: bool = False) -> Definition:
 
 # _SML_RD_FN = 'norReduce'
 _SML_RD_FN = 'reducer'
-_SML_SUPPORT_CODE = pathlib.Path('reducer.sml')
+_SML_LC_INTERPRETER_PATH = pathlib.Path('reducer.sml')
 # _SML_SUPPORT_CODE = pathlib.Path('2_reducer.sml')
 
 
-with open(_SML_SUPPORT_CODE, 'r') as _sml_f:
-    _SUPPORT_CODE = _sml_f.read()
+# read sml interpreter code
+with open(_SML_LC_INTERPRETER_PATH, 'r') as _sml_f:
+    _SML_INTERPRETER_CODE = _sml_f.read()
 
 
 def _format_sml_exec_stream(df: Definition, verbose: bool = False) -> str:
@@ -76,6 +77,7 @@ def _format_sml_exec_stream(df: Definition, verbose: bool = False) -> str:
 
 
 class _Timer:
+    """ a timer class that calculate the time using with statement"""
     def __init__(self):
         self._start = None
         self._prompt = 'time consumed'
@@ -137,7 +139,7 @@ def run_sml(sml: Union[pathlib.Path, str]) -> Optional[str]:
 
         with _timer('sml execution took'):
             s = subprocess.Popen([sml_bin], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            output, _ = s.communicate((_SUPPORT_CODE + _SML_SRC).encode())
+            output, _ = s.communicate((_SML_INTERPRETER_CODE + _SML_SRC).encode())
     else:
         print('no sml compiler')
         return None
@@ -187,18 +189,18 @@ def run_all(src: Union[pathlib.Path, str], verbose: bool = False) -> None:
     :return: None
     """
     if isinstance(src, pathlib.Path):
-        _, sml_code_path = write_main(read_and_eval(src, verbose), src, verbose)
+        _, sml_code_info = write_main(read_and_eval(src, verbose), src, verbose)
     elif isinstance(src, str):
         f = pathlib.Path(src)
         if f.is_file() and src.endswith('.lc'):
-            _, sml_code_path = write_main(read_and_eval(f, verbose), f, verbose)
+            _, sml_code_info = write_main(read_and_eval(f, verbose), f, verbose)
         else:
-            sml_code_path = _format_sml_exec_stream(eval_all(src, verbose), verbose)
+            sml_code_info = _format_sml_exec_stream(eval_all(src, verbose), verbose)
     else:
         raise Exception('unknown file type')
 
-    out = run_sml(sml_code_path)
-    stdout, res = extract_sml_output(out)
+    execution_output = run_sml(sml_code_info)
+    stdout, res = extract_sml_output(execution_output)
 
     if verbose:
         print('verbose: ')
