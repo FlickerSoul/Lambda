@@ -40,4 +40,4 @@ equal := fn n => fn m => and (not (less n m)) (not (less m n));
 
 fibbit := fn n => fst (n (fn p => (pair (snd p) (plus (fst p) (snd p)))) (pair zero one));
 
-div2 := fn n => fst (n (fn p => (pair (snd p) succ(fst p))) (pair zero zero));
+div2 := fn n => fst (n (fn p => (pair (snd p) (succ (fst p)))) (pair zero zero));
