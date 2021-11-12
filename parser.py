@@ -9,7 +9,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Optional, Mapping, List
+from pathlib import Path
+from typing import Optional, Mapping, List, Iterable
 
 from tokenizer import TokenStream
 
@@ -19,6 +20,14 @@ _ABSTRACTION = 'Abstraction'
 _APPLICATION = 'Application'
 
 _MAIN_ENTRY = 'main'
+
+
+def _read_supporting_code(ps: Iterable[Path]) -> str:
+    content = []
+    for p in ps:
+        with open(p, 'r') as f:
+            content.append(f.read())
+    return '\n'.join(content)
 
 
 class ASTBase:
@@ -80,6 +89,9 @@ class Definition:
     The definition class handles lambda calculus source code parsing
     and the final main clause formatting
     """
+    _LC_SUPPORT_CODES = [Path('fundaments.lc')]
+    _SUPPORTING_CODE = _read_supporting_code(_LC_SUPPORT_CODES)
+
     def __init__(self, src: str) -> None:
         self._src: str = src
         self._tokens: Optional[TokenStream] = None
@@ -106,6 +118,10 @@ class Definition:
         return main_clause
 
     @property
+    def src(self) -> str:
+        return self._SUPPORTING_CODE + '\n' + self._src
+
+    @property
     def defs(self) -> dict:
         return self._defs
 
@@ -122,7 +138,8 @@ class Definition:
     def parse(self) -> Mapping[str, ASTBase]:
         """ tokenizes the src and parses it """
         self.init()
-        self._tokens = TokenStream(self._src)
+        print(self.src)
+        self._tokens = TokenStream(self.src)
         self.parse_term(deepcopy(self._tokens))
         if _MAIN_ENTRY not in self.defs:
             print('Warning: main is not defined')
