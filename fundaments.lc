@@ -1,19 +1,23 @@
 zero := fn f => fn a => a;
+false := zero;
+true := fn t => fn e => t;
 
-fst := fn f => fn a => f;
-snd := zero;
 
-true := fst;
-false := snd;
+fst := fn p => p true;
+snd := fn p => p false;
+
 
 succ := fn n => fn f => fn a => f (n f a);
 
 one := succ zero;
+two := succ one;
+three := succ two;
+four := succ three;
+five := succ four;
 
 plus := fn n => fn m => m succ n;
 times := fn n => fn m => m n;
 power := fn n => fn m => n times m one;
-
 
 pair := fn t => fn e => fn c => c t e;
 
