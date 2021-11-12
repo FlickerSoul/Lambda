@@ -1,4 +1,26 @@
 (* 0 1 1 2 3 5 8 13*)
 (* 0 1 2 3 4 5 6 7 *)
 
-main := fibrec zero;
+zero := fn f => fn a => a;
+true := fn t => fn e => t;
+false := fn t => fn e => e;
+if := fn c => fn t => fn e => c t e;
+pair := fn t => fn e => fn c => c t e;
+fst := fn p => p true;
+snd := fn p => p false;
+succ := fn n => fn f => fn a => f (n f a);
+plus := fn n => fn m => m succ n;
+one := succ zero;
+pred := fn n => fst(n (fn p => (pair (snd p) (succ (snd p)))) (pair zero zero));
+minus := fn n => fn m => m pred n;
+is_zero := fn n => n (fn f => false) true;
+less := fn n => fn m => is_zero (minus n (pred m));
+and := fn x => fn y => x (y true false) false;
+not := fn c => c false true;
+(* equal := fn n => fn m => and (is_zero (minus n m)) (not (less n m)); *)
+(* equal := fn n => fn m => and (less (pred n) m) (less n (pred m)); *)
+equal := fn n => fn m => and (not (less n m)) (not (less m n));
+Y := fn g => (fn f => g (f f)) (fn f => g (f f));
+fibhelp := fn c => fn n => if (is_zero n) zero (if (equal n one) one (plus (c (pred n)) (c (pred (pred n)))));
+fibrec := fn n => Y fibhelp n;
+main := fibrec (succ (succ (succ (succ (succ (succ zero))))));
