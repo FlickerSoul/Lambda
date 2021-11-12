@@ -2,7 +2,6 @@
 
 # CSCI 384
 
-import sys
 import pathlib
 from pprint import pprint
 import subprocess
