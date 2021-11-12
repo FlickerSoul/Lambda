@@ -1,49 +1,54 @@
 zero := fn f => fn a => a;
+
 true := fn t => fn e => t;
 false := fn t => fn e => e;
 if := fn c => fn t => fn e => c t e;
+is_zero := fn n => n (fn f => false) true;
 
 
 pair := fn t => fn e => fn c => c t e;
 fst := fn p => p true;
 snd := fn p => p false;
 
-
 succ := fn n => fn f => fn a => f (n f a);
-
-one := succ zero;
-two := succ one;
-three := succ two;
-four := succ three;
-five := succ four;
 
 plus := fn n => fn m => m succ n;
 times := fn n => fn m => fn f => m (n f);
-power := fn b => fn p => p (times b) one;
 
+(* power *)
+power := fn b => fn p => p (times b) (succ zero);
 
+(* pred *)
 pred := fn n => fst(n (fn p => (pair (snd p) (succ (snd p)))) (pair zero zero));
 
+(* minus *)
 minus := fn n => fn m => m pred n;
 
-is_zero := fn n => n (fn f => false) true;
-
+(* less *)
 less := fn n => fn m => is_zero (minus n (pred m));
 
-
+(* and *)
 and := fn x => fn y => x (y true false) false;
+
+(* not *)
 not := fn c => c false true;
 
+(* many equal *)
 (* equal := fn n => fn m => and (is_zero (minus n m)) (not (less n m)); *)
 (* equal := fn n => fn m => and (less (pred n) m) (less n (pred m)); *)
 equal := fn n => fn m => and (not (less n m)) (not (less m n));
 
-fibbit := fn n => fst (n (fn p => (pair (snd p) (plus (fst p) (snd p)))) (pair zero one));
+(* fibbit *)
+fibbit := fn n => fst (n (fn p => (pair (snd p) (plus (fst p) (snd p)))) (pair zero (succ zero)));
 
+(* div2 *)
 div2 := fn n => fst (n (fn p => (pair (snd p) (succ (fst p)))) (pair zero zero));
 
+(* Y combinator *)
 Y := fn g => (fn f => g (f f)) (fn f => g (f f));
 
-fibhelp := fn c => fn n => if (is_zero n) zero (if (equal n one) one (plus (c (pred n)) (c (pred (pred n)))));
+(* fib rec helper *)
+fibhelp := fn c => fn n => if (is_zero n) zero (if (equal n (succ zero)) (succ zero) (plus (c (pred n)) (c (pred (pred n)))));
 
+(* fibrec *)
 fibrec := fn n => Y fibhelp n;
