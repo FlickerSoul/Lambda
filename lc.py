@@ -24,7 +24,7 @@ def eval_all(src: str, verbose: bool = False) -> Definition:
     :return: None
     """
     df = Definition(src)
-    print(f'src: {df.raw_src}')
+    print(f'src: \n{df.raw_src}')
     parsed = df.parse()
     if verbose:
         print('parsed: ')
@@ -154,22 +154,27 @@ def extract_sml_output(sml_output: str) -> Optional[Tuple]:
     sl = list(i for i in sml_output.split('\n') if i)
 
     try:
-        r_index = tuple(i for i in range(len(sl)) if sl[i].startswith('val start_'))[0] + 1
+        s_index = tuple(i for i in range(len(sl)) if sl[i].startswith('val start_'))[0] + 1
     except IndexError:
         print('source code does not follow the api')
         return
     try:
-        o_index = tuple(i for i in range(r_index, len(sl)) if sl[i].startswith('val main_'))[0]
+        m_index = tuple(i for i in range(s_index, len(sl)) if sl[i].startswith('val main_'))[0]
     except IndexError:
         print('cannot find main_ evaluation, possibly due to error')
         return
+    try:
+        e_index = tuple(i for i in range(s_index, len(sl)) if sl[i].startswith('val end_'))[0]
+    except IndexError:
+        print('source code does not follow the api')
+        return
 
-    if o_index < len(sl):
-        output = '\n'.join(
-            sl[r_index:-1]
+    if e_index < len(sl):
+        print_out = '\n'.join(
+            sl[s_index:m_index]
         )
-        result = '\n'.join(sl[o_index:])
-        return output, result
+        result = '\n'.join(sl[m_index:e_index])
+        return print_out, result
     else:
         return None
 
