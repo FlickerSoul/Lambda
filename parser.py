@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from pathlib import Path
-from typing import Optional, Mapping, List, Iterable
+from typing import Optional, Mapping, List, Iterable, Set
 
 from tokenizer import TokenStream
 
@@ -109,7 +109,7 @@ class Definition:
         self._tokens: Optional[TokenStream] = None
         self._defs = {}
         self._main: Optional[ASTBase] = None
-        self._dependent_tree = None
+        self._dependent_tree: Optional[Set] = None
 
     def _tree_shaking(self) -> None:
         """ tree shaking handler
@@ -117,9 +117,9 @@ class Definition:
         :return: None
         """
         if self._dependent_tree is not None:
-            return self._dependent_tree
+            return
 
-        def _tree_shaking_helper(df: ASTBase, container: set, *exclude) -> set:
+        def _tree_shaking_helper(df: ASTBase, container: Set, *exclude) -> Set:
             """ recursively resolve clause dependency
 
             :param df: definition to be resolved
@@ -150,7 +150,7 @@ class Definition:
         self._dependent_tree = _tree_shaking_helper(main_clause, set())
 
     @property
-    def dependent_tree(self) -> set:
+    def dependent_tree(self) -> Set:
         return self._dependent_tree
 
     @property
@@ -160,8 +160,6 @@ class Definition:
 
         if _MAIN_ENTRY not in self._defs:
             return None
-
-        self._tree_shaking()
 
         main_clause: ASTBase = self._defs[_MAIN_ENTRY]
         for var_name, definition in list(reversed(self._defs.items()))[1:]:
@@ -204,6 +202,7 @@ class Definition:
         self.parse_term(deepcopy(self._tokens))
         if _MAIN_ENTRY not in self.defs:
             print('Warning: main is not defined')
+        self._tree_shaking()
         return self.defs
 
     def parse_term(self, tokens: TokenStream, is_app=False) -> Optional[ASTBase]:
