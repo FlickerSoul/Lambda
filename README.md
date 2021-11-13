@@ -22,7 +22,7 @@ For example,
 
 ```shell
 # run a specific src file in verbose mode 
-./lc.py examples/example11.lc -v 
+./lc.py examples/gcd_18_15.lc -v 
 ```
 
 ```shell

@@ -1,0 +1,3 @@
+three := succ (succ (succ zero));
+two := succ (succ (zero));
+main := plus three two;
