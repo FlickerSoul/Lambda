@@ -70,9 +70,9 @@ def _format_sml_exec_stream(df: Definition, verbose: bool = False) -> str:
     :param verbose: verbose flag
     :return: executable sml terms
     """
-    return f'val _ = (Control.Print.printDepth := 10000)' \
-           f'val start_ = ();\n ' \
-           f'val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};\n' \
+    return f'val _ = (Control.Print.printDepth := 10000);\n' \
+           f'val start_ = ();\n' \
+           f' val main_ = {_SML_RD_FN} ({df.formatted_main}) {"true" if verbose else "false"};\n' \
            f'val end_ = ();'
 
 
