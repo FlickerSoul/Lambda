@@ -6,7 +6,7 @@ if := fn c => fn t => fn e => c t e;
 is_zero := fn n => n (fn f => false) true;
 
 (* this shouldn't be working? *)
-let := fn v => fn e => fn b => (fn v => b) e;
+(* let := fn v => fn e => fn b => (fn v => b) e; *)
 pair := fn t => fn e => fn c => c t e;
 fst := fn p => p true;
 snd := fn p => p false;
